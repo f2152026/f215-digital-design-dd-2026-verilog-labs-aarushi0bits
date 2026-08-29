@@ -61,11 +61,49 @@ module cla64_flat(
   //
   // TODO: paste your verified assign statements for c[1] through c[64] here.
 
+  // Helper function to evaluate the flattened lookahead carry for any bit index
+    function automatic evaluate_carry(input integer index);
+        integer term_idx, p_idx;
+        reg term_val;
+        reg accum;
+        begin
+            accum = g[index]; // First term: g[i]
+            
+            // Middle terms: p[i] & ... & g[i-k]
+            for (term_idx = 0; term_idx < index; term_idx = term_idx + 1) begin
+                term_val = g[term_idx];
+                for (p_idx = term_idx + 1; p_idx <= index; p_idx = p_idx + 1) begin
+                    term_val = term_val & p[p_idx];
+                end
+                accum = accum | term_val;
+            end
+            
+            // Final term: p[i] & ... & p[0] & cin
+            term_val = cin;
+            for (p_idx = 0; p_idx <= index; p_idx = p_idx + 1) begin
+                term_val = term_val & p[p_idx];
+            end
+            accum = accum | term_val;
+            
+            evaluate_carry = accum;
+        end
+    endfunction
+
+    // Generate 64 direct continuous assignments with #2 delay
+    genvar k;
+    generate
+        for (k = 0; k < 64; k = k + 1) begin : gen_carries
+            assign #(2) c[k+1] = evaluate_carry(k);
+        end
+    endgenerate
+
   assign cout = c[64];
 
   // ---------------------------------------------------------------------
   // Step 3: sum bits
   // ---------------------------------------------------------------------
   // TODO: assign #(2) sum = p ^ {c[63:1], cin};
+
+  assign #(2) sum = p ^ {c[63:1], cin};
 
 endmodule
