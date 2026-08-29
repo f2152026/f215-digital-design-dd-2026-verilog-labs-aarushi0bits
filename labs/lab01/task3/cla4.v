@@ -73,7 +73,7 @@ module cla4(
     and #(2) (t4_3, p3, p2, p1, p0, cin);
     or  #(2) (cout, g3, t4_0, t4_1, t4_2, t4_3);
 
-    // Step 3: Sum outputs
+    // sum
     xor #(2) (sum[0], p0, cin);
     xor #(2) (sum[1], p1, c1);
     xor #(2) (sum[2], p2, c2);
